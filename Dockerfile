@@ -4,36 +4,38 @@ LABEL version="1.0"
 
 ENV SCAN_FOLDER=/data
 
-# Volumes
-VOLUME /data
-VOLUME /var/log
+RUN adduser ocr
 
-# Users
-USER ocr
-
-RUN apt-get update \
-    && apt-get install -y autoconf \
+# Base
+RUN apt-get update
+RUN apt-get install -y autoconf \
                           build-essential \
                           git \
                           liblept4 \
                           libleptonica-dev \
                           libgomp1 \
-                          libtool \
-    && git clone https://github.com/tesseract-ocr/tesseract.git \
-        && cd tesseract \
-        && ./autogen.sh \
-        && ./configure \
-        && make install \
-        && cd .. \
-    && git clone https://github.com/tesseract-ocr/tessdata.git \
-        && cd tessdata \
-        && mv * /usr/local/share/tessdata/ \
-        && cd .. \
-    && apt-get purge --auto-remove -y autoconf \
+                          libtool
+
+# Install Tesseract
+RUN apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+# Install pypdfocr
+RUN apt-get install -y libjpeg-dev zlib1g-dev
+RUN apt-get install -y python-pip python-dev imagemagick poppler-utils
+RUN pip install git+https://github.com/abrown43/pypdfocr
+
+# Make folder
+RUN mkdir /data
+RUN chown -R ocr:ocr /data
+
+# Cleanup
+RUN apt-get purge --auto-remove -y autoconf \
                                       build-essential \
                                       git \
                                       libleptonica-dev \
-                                      libtool \
-    && rm -rf tesseract tessdata /var/cache/apk/*
+                                      libtool
+RUN rm -rf /var/cache/apk/*
 
+
+#ENTRYPOINT ["ls", "-l", "/data"]
 ENTRYPOINT ["pypdfocr", "-w", "${SCAN_FOLDER:-/data}", "--archive", "--archive_suffix", "${ARCHIVE_SUFFIX:-_orig.pdf}", "--initial_scan"]
