@@ -38,4 +38,4 @@ RUN rm -rf /var/cache/apk/*
 
 
 #ENTRYPOINT ["ls", "-l", "/data"]
-ENTRYPOINT ["pypdfocr", "-w", "${SCAN_FOLDER:-/data}", "--archive", "--archive_suffix", "${ARCHIVE_SUFFIX:-_orig.pdf}", "--initial_scan"]
+ENTRYPOINT ["pypdfocr", "-w", "/data", "--archive", "--archive_suffix", "_orig.pdf", "--initial_scan"]
